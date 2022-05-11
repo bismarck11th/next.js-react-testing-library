@@ -11,18 +11,29 @@ import { setupServer } from 'msw/node'
 initTestHelpers()
 
 const server = setupServer(
-  rest.get(
-    'https://jsonplaceholder.typicode.com/todos/?_limit=10',
-    (req, res, ctx) => {
+  rest.get('https://jsonplaceholder.typicode.com/todos/', (req, res, ctx) => {
+    const query = req.url.searchParams
+    const _limit = query.get('_limit')
+    if (_limit === '10') {
       return res(
         ctx.status(200),
         ctx.json([
-          { userId: 3, id: 3, title: 'Static task C', completed: true },
-          { userId: 4, id: 4, title: 'Static task D', completed: false },
+          {
+            userId: 3,
+            id: 3,
+            title: 'Static task C',
+            completed: true,
+          },
+          {
+            userId: 4,
+            id: 4,
+            title: 'Static task D',
+            completed: false,
+          },
         ])
       )
     }
-  )
+  })
 )
 
 beforeAll(() => server.listen())
@@ -32,6 +43,7 @@ afterEach(() => {
 })
 afterAll(() => server.close())
 
+
 describe('Todo page / getStaticProps', () => {
   it('Should render the list of tasks pre-fetched by getStaticProps', async () => {
     const { page } = await getPage({
@@ -40,7 +52,7 @@ describe('Todo page / getStaticProps', () => {
     render(page)
 
     expect(await screen.findByText('task page')).toBeInTheDocument()
-    expect(screen.findByText('Static task C')).toBeInTheDocument()
-    expect(screen.findByText('Static task D')).toBeInTheDocument()
+    expect(screen.getByText('Static task C')).toBeInTheDocument()
+    expect(screen.getByText('Static task D')).toBeInTheDocument()
   })
 })
